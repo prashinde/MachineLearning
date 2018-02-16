@@ -1,8 +1,6 @@
-function gradient = gradient(x, alpha)
-  	dimension = length(x);
-    gradient = zeros(dimension, 1);
-		gradient(1:dimension-1) = - 400*x(1:dimension-1).*(x(2:dimension)-x(1:dimension-1).^2) - 2*(1-x(1:dimension-1));
-		gradient(2:dimension) = gradient(2:dimension) + 200*(x(2:dimension)-x(1:dimension-1).^2)';
-    
-    %WS = x-alpha*(gradient)';
+function gradient = gradient(Z, alpha)
+  	dim = length(Z);
+    gradient = zeros(dim, 1);
+		gradient(1:dim-1) = - 400*Z(1:dim-1).*(Z(2:dim)-Z(1:dim-1).^2) - 2*(1-Z(1:dim-1));
+		gradient(2:dim) = gradient(2:dim) + 200*(Z(2:dim)-Z(1:dim-1).^2)';
  endfunction
