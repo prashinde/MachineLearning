@@ -3,7 +3,6 @@ import pickle as pk
 import matplotlib.pyplot as plt
 
 prcent_split = 0.75
-training_as_pickle="/home/pratik/MachineLearning/TrainingAss2/mnist_rowmajor.pkl"
 
 def pick_first_M(TD, TL):
     TDSize = len(TD)
@@ -18,6 +17,7 @@ def pick_first_M(TD, TL):
 
     return in_train_d, in_train_l, in_dev_d, in_dev_l
 
+training_as_pickle="/home/pratik/MachineLearning/TrainingAss2/mnist_rowmajor.pkl"
 with open(training_as_pickle, "rb") as f:
     data=pk.load(f)
 

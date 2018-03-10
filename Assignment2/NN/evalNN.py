@@ -3,11 +3,20 @@ import numpy as np
 import pickle as pk
 from NN import NeuralNet 
 
-pNet = "30hunits_randombias.pkl"
+pNet = "completeTraining/testNN.pkl"
 
 with open(pNet, "rb") as f:
     NN=pk.load(f)
 
+training_as_pickle="/home/pratik/MachineLearning/TrainingAss2/mnist_rowmajor.pkl"
+with open(training_as_pickle, "rb") as f:
+    data=pk.load(f)
+
+test_data = data['images_test']
+test_label = data['labels_test']
+
+
+'''
 training_d = "../Perceptron/processed_data.pkl"
 
 with open(training_d, "rb") as f:
@@ -15,18 +24,16 @@ with open(training_d, "rb") as f:
 
 devel_d = data['in_dev_data']
 devel_l = data['in_dev_label']
-
-print "Model magic is:",
-print NN.magic
+'''
 nrm = 0
-for ex in range(len(devel_d)):
-        row = devel_d[ex].reshape(1, 784)
-        pred = -1
-        binput, hout, hact, fout, fact = NN.forward(row)
-        pred = np.argmax(fact)
-        if(pred != devel_l[ex][0]):
-            nrm += 1
+for ex in range(len(test_data)):
+    row = test_data[ex].reshape(1, 784)
+    pred = -1
+    binput, hout, hact, fout, fact = NN.forward(row)
+    pred = np.argmax(fact)
+    
+    if(pred != test_label[ex][0]):
+        nrm += 1
 
-print "Accuracy of a NN is",
-print float((len(devel_d)-nrm)*100)/len(devel_d)
-
+acc = float((len(test_data)-nrm)*100)/len(test_data)
+print " Accuracy of a NN:", acc

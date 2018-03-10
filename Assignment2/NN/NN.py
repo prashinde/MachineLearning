@@ -7,7 +7,7 @@ import random
 import numpy as np
 import pickle as pk
 class NeuralNet:
-    def __init__(self, nrclasses=10, nrfeatures=784, nrhunits=30, epoch=3, ll=0.001, nrbatches=1, bias = 2):
+    def __init__(self, nrclasses=10, nrfeatures=784, nrhunits=30, epoch=3, ll=0.001, nrbatches=1, bias = 2, ifeature=1, tao=0):
         self.nrclasses = nrclasses
         self.nrfeatures = nrfeatures
         self.nrhunits = nrhunits
@@ -17,6 +17,8 @@ class NeuralNet:
         self.magic = 0
         self.bias = bias
 
+        self.ifeature = ifeature
+        self.tao = tao
         '''
         weights from input to hidden layer
         +1 for bias
@@ -157,6 +159,11 @@ class NeuralNet:
             xmini = np.array_split(x_train, self.nrbatches)
             ymini = np.array_split(onehoty, self.nrbatches)
             for xi, yi in zip(xmini, ymini):
+                '''
+                Binary input
+                '''
+                if(self.ifeature == 2):
+                    xi = np.where(xi > self.tao, 1, 0)
                 binput, hout, hact, fout, fact = self.forward(xi)
                 cost = self.calcost(fact, yi.T)
                 grad1, grad2 = self.backward(binput, hout, hact, fout, fact, yi.T)

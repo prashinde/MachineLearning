@@ -3,11 +3,13 @@ import numpy as np
 import pickle as pk
 from NN import NeuralNet
 
-training_d = "../Perceptron/processed_data.pkl"
-with open(training_d, "rb") as f:
+training_as_pickle="/home/pratik/MachineLearning/TrainingAss2/mnist_rowmajor.pkl"
+with open(training_as_pickle, "rb") as f:
     data=pk.load(f)
-td = data['in_train_data']
-tl = data['in_train_label']
+
+training_data = data['images_train']
+training_label = data['labels_train']
+
 
 '''
 dummy test data
@@ -20,6 +22,9 @@ td = td.reshape(nrex, 784)
 tl = tl.reshape(nrex, 1)
 '''
 
-NN = NeuralNet(nrclasses=10, nrfeatures=784, nrhunits=30, epoch=900, ll=0.001, nrbatches=100, bias=3)
-NN.TrainNet(td, tl, 422229944)
-NN.pickleClass('30hunits_randombias.pkl')
+print "Training data: ", training_data.shape
+print "Training label: ", training_label.shape
+
+NN = NeuralNet(nrclasses=10, nrfeatures=784, nrhunits=60, epoch=900, ll=0.001, nrbatches=100, bias=3, ifeature=1, tao=0.04)
+NN.TrainNet(training_data, training_label, 422229944)
+NN.pickleClass('completeTraining/testNN.pkl')
