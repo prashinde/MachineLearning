@@ -20,21 +20,29 @@ class NeuralNet:
         +1 for bias
         self.Wih is 30x785
         '''
-        self.Wih = np.random.uniform(-1, 1, self.nrhunits*(self.nrfeatures+1))
-        self.Wih = self.Wih.reshape(self.nrhunits, self.nrfeatures+1)
+        self.Wih = np.random.uniform(-1, 1, self.nrhunits*(self.nrfeatures))
+        self.Wih = self.Wih.reshape(self.nrhunits, self.nrfeatures)
         '''
         Weights from hidden to output layer
         self.Who is 10x31
         '''
-        self.Who = np.random.uniform(-1, 1, (self.nrhunits+1)*nrclasses)
-        self.Who = self.Who.reshape(self.nrclasses, self.nrhunits+1)
+        self.Who = np.random.uniform(-1, 1, (self.nrhunits)*nrclasses)
+        self.Who = self.Who.reshape(self.nrclasses, self.nrhunits)
 
+    '''
     def relu(self, W):
         W[W < 0] = 0
         return W
 
     def reluprime(self, W):
         return np.where(W > 0, 1, 0)
+    '''
+    
+    def relu(self, dot_product):
+        return np.maximum(dot_product, 0)
+
+    def reluprime(self, input):
+        return (input > 0).astype(input.dtype)
 
     def softmax(self, X):
         #print np.sum((np.exp(X-np.max(X))), axis=0)
@@ -69,19 +77,19 @@ class NeuralNet:
         '''
         Each training example is 1x784 size
         Add bias to training example along a column
-        '''
         biasinput = self.addcolumn(td)
+        '''
 
-        print "Input shape is"
-        print biasinput.shape
         '''
         Compute the output of the hidden layer
         training example matrix is lx785
         and Wih is 30x785. We will transpose input.
         T(TD) = 785xl.
         Result is 30xl
-        '''
         hout = self.Wih.dot(biasinput.T)
+        '''
+
+        hout = self.Wih.dot(td.T)
 
         '''
         Apply Activation function Relu
@@ -94,8 +102,8 @@ class NeuralNet:
         Each column is corresponds to training example.
         Now, we have to apply next weight which is 10x31
         We will add bias along the row, i.e. is each training example.
-        '''
         hiddenact = self.addrow(hiddenact)
+        '''
 
         '''
         Compute the actual output
@@ -111,34 +119,26 @@ class NeuralNet:
         Apply Softmax
         '''
         outact = self.softmax(fout)
+        '''
         print "*****************"
         print "outact dimentiosn"
         print outact.shape
         print "*******************"
-
-        return biasinput, hout, hiddenact, fout, outact
+        '''
+        return td, hout, hiddenact, fout, outact
 
     def backward(self, binput, hout, hact, fout, fact, y):
         s3 = fact - y
-        print "ST*************************"
-        print s3.shape
-        print fact.shape
-        print y.shape
-        print "STOP*************************"
-
         '''
-        print "fact[:, 0]"
+        print "S*******************"
         print fact[:, 0]
-
-        print "y[:, 0] is:"
         print y[:, 0]
-
-        print "s3: is"
-        print s3
+        print s3[:, 0]
+        print "Stop*******************"
         '''
-        hout = self.addrow(hout)
+        #hout = self.addrow(hout)
         l2loss = self.Who.T.dot(s3)*self.reluprime(hout)
-        l2loss = l2loss[1:, :]
+        #l2loss = l2loss[1:, :]
         grad1 = l2loss.dot(binput)
         grad2 = s3.dot(hact.T)
         return grad1, grad2
@@ -148,18 +148,20 @@ class NeuralNet:
         return cost/predictions.shape[1]
 
     def TrainNet(self, x_train, y_train):
+        onehoty = self.conehot(y_train).T
         for i in range(self.epoch):
             '''
             Split in minibatches
             '''
             xmini = np.array_split(x_train, self.nrbatches)
-            ymini = np.array_split(y_train, self.nrbatches)
+            ymini = np.array_split(onehoty, self.nrbatches)
             for xi, yi in zip(xmini, ymini):
                 binput, hout, hact, fout, fact = self.forward(xi)
-                cost = self.calcost(fact, self.conehot(yi))
-                grad1, grad2 = self.backward(binput, hout, hact, fout, fact, self.conehot(yi))
+                cost = self.calcost(fact, yi.T)
+                grad1, grad2 = self.backward(binput, hout, hact, fout, fact, yi.T)
                 self.Wih -= (self.ll * grad1)
                 self.Who -= (self.ll * grad2)
+            print cost
             #ri = random.randint(0, 99)
             #print fact[:, 2] 
             #print self.conehot(yi)[:, 2]
@@ -182,5 +184,5 @@ td = td.reshape(nrex, 784)
 tl = tl.reshape(nrex, 1)
 '''
 
-NN = NeuralNet(nrclasses=10, nrfeatures=784, nrhunits=30, epoch=50, ll=0.001, nrbatches=100)
+NN = NeuralNet(nrclasses=10, nrfeatures=784, nrhunits=30, epoch=1000, ll=0.001, nrbatches=100)
 NN.TrainNet(td, tl)
