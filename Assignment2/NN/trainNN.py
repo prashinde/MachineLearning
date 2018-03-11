@@ -3,7 +3,7 @@ import numpy as np
 import pickle as pk
 from NN import NeuralNet
 
-training_as_pickle="/home/pratik/MachineLearning/TrainingAss2/mnist_rowmajor.pkl"
+training_as_pickle="../Data/mnist_rowmajor.pkl"
 with open(training_as_pickle, "rb") as f:
     data=pk.load(f)
 

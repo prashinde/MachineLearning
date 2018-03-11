@@ -17,7 +17,7 @@ def pick_first_M(TD, TL):
 
     return in_train_d, in_train_l, in_dev_d, in_dev_l
 
-training_as_pickle="/home/pratik/MachineLearning/TrainingAss2/mnist_rowmajor.pkl"
+training_as_pickle="mnist_rowmajor.pkl"
 with open(training_as_pickle, "rb") as f:
     data=pk.load(f)
 
@@ -32,6 +32,7 @@ freqs=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 for i in in_train_label:
     freqs[i[0]] += 1
 
+
 '''
 Plot a historgram of numbers
 '''
@@ -39,6 +40,21 @@ x = np.arange(len(freqs))
 plt.bar(x, freqs)
 plt.xticks(x, lables)
 plt.show()
+
+'''
+Do similar for deve data
+'''
+lables=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+freqs=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+for i in in_dev_label:
+    freqs[i[0]] += 1
+
+x = np.arange(len(freqs))
+plt.bar(x, freqs)
+plt.xticks(x, lables)
+plt.show()
+
 
 '''
 Create pickle file for splitted data
