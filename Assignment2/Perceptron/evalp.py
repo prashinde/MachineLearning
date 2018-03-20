@@ -38,21 +38,13 @@ with open(training_as_pickle, "rb") as f:
 test_data = data['images_test']
 test_label = data['labels_test']
 
-with open("60kexamples.pkl", "rb") as f:
+noise = 0
+
+if(noise == 1):
+    test_data = test_data + np.random.normal(0, 0.05, test_data.shape)
+
+with open("../bestmodels/bestperceptron.pkl", "rb") as f:
     wts=pk.load(f)
 
 
 Accuracy(test_data, test_label, wts)
-'''
-tao = 0
-maxacc = 0
-btao = 0
-while tao < 1:
-    acc = Accuracy_th(devel_d, devel_l, wts, tao)
-    if(acc > maxacc):
-        maxacc = acc
-        btao = tao
-    tao += 0.01
-
-print "Best accuracy:", maxacc, " Corresponding Tao:", btao
-'''

@@ -3,7 +3,7 @@ import numpy as np
 import pickle as pk
 from NN import NeuralNet 
 
-pNet = "completeTraining/testNN.pkl"
+pNet = "../bestmodels/testNN.pkl"
 
 with open(pNet, "rb") as f:
     NN=pk.load(f)
@@ -15,6 +15,10 @@ with open(training_as_pickle, "rb") as f:
 test_data = data['images_test']
 test_label = data['labels_test']
 
+noise = 0
+
+if(noise == 1):
+    test_data = test_data + np.random.normal(0, 0.05, test_data.shape)
 
 '''
 training_d = "../Perceptron/processed_data.pkl"
@@ -34,6 +38,5 @@ for ex in range(len(test_data)):
     
     if(pred != test_label[ex][0]):
         nrm += 1
-
 acc = float((len(test_data)-nrm)*100)/len(test_data)
 print " Accuracy of a NN:", acc

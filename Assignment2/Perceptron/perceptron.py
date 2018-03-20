@@ -48,21 +48,20 @@ with open(training_as_pickle, "rb") as f:
 training_data = data['images_train']
 training_label = data['labels_train']
 
-
-'''
-training_d = "../Data/processed_data.pkl"
-
-with open(training_d, "rb") as f:
-    data=pk.load(f)
-
-training_data = data['in_train_data']
-training_label = data['in_train_label']
-'''
-
 tao = 0
+noise = 0
+sort_in = 1
+
+if(noise == 1):
+    training_data = training_data + np.random.normal(0, 0.05, training_data.shape)
+elif(sort_in == 1):
+    idx = np.argsort(training_label.flatten())
+    training_data=np.array(training_data)[idx]
+    training_label=np.array(training_label)[idx]
+
 wts = train(training_data, training_label, tao)
 
-output = open('60kexamples.pkl', 'wb')
+output = open('percept.pkl', 'wb')
 wts.dump(output)
 output.close()
 
