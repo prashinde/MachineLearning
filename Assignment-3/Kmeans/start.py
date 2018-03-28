@@ -17,7 +17,7 @@ def readfile(fname):
 
     return np.asarray(xs), np.asarray(ys)
 
-fname='../Data/a3-data/2d-kmeans-input.ssv'
+fname='../Data/data_10_5_100000'
 xs, ys = readfile(fname)
 points = np.column_stack((xs, ys))
 #print points
@@ -29,7 +29,7 @@ centroids, clusters, objective = nm.cluster(points)
 for cluster in clusters:
     plt.plot(objective[cluster], '--o')
     plt.show()
-
+'''
 scls=[]
 for cluster in clusters:
     x=[]
@@ -47,3 +47,4 @@ for c in centroids:
     plt.plot(c[0], c[1], c=scls[i], marker='D', markerfacecolor='white')
     i = i+1
 plt.show()
+'''
