@@ -22,7 +22,7 @@ xs, ys = readfile(fname)
 points = np.column_stack((xs, ys))
 #print points
 
-k=2
+k=4
 nm = kmeans(k)
 centroids, clusters, objective = nm.cluster(points)
 

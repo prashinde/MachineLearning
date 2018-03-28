@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 class kmeans:
     def __init__(self, k=5, miter=300):
@@ -10,11 +11,14 @@ class kmeans:
         self.centroids = self.centroids.reshape((self.k, points.shape[1]))
         self.objective = {}
         pavgd = 999
+
+        ilist = random.sample(xrange(len(points)), self.k)
+        self.centroids = np.array([points[i] for i in ilist])
         '''
         First k data points are centroids
         '''
         for i in range(self.k):
-            self.centroids[i] = np.random.rand(2)
+            #self.centroids[i] = points[i]
             self.objective[i] = []
 
         for rounds in range(self.miter):
@@ -40,8 +44,8 @@ class kmeans:
                 edistance = [np.linalg.norm(point-centroid) for centroid in self.centroids]
                 cluster = np.argmin(edistance)
                 self.clusters[cluster].append(point)
-                #print edistance[cluster]
-                self.distances[cluster].append(edistance[cluster])
+                if not np.isnan(edistance[cluster]):
+                    self.distances[cluster].append(edistance[cluster])
 
             '''
             Rebalance the centroids
@@ -49,12 +53,11 @@ class kmeans:
             for cluster in self.clusters:
                 self.centroids[cluster]=np.average(self.clusters[cluster], axis=0)
                 self.objective[cluster].append(np.average(self.distances[cluster], axis=0))
-                avgdistance += np.average(self.distances[cluster])
+                avgdistance += np.average(self.distances[cluster], axis = 0)
 
             if pavgd - avgdistance < 0.0001:
                 break
             else:
                 pavgd = avgdistance
                 avgdistance = 0
-
         return self.centroids, self.clusters, self.objective
