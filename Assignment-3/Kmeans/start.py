@@ -22,9 +22,13 @@ xs, ys = readfile(fname)
 points = np.column_stack((xs, ys))
 #print points
 
-k=5
+k=2
 nm = kmeans(k)
-centroids, clusters = nm.cluster(points)
+centroids, clusters, objective = nm.cluster(points)
+
+for cluster in clusters:
+    plt.plot(objective[cluster], '--o')
+    plt.show()
 
 scls=[]
 for cluster in clusters:
