@@ -9,17 +9,17 @@ class kmeans:
     def cluster(self, points):
         self.centroids = np.zeros(self.k*points.shape[1], dtype=float)
         self.centroids = self.centroids.reshape((self.k, points.shape[1]))
-        self.objective = {}
+        self.objective = []
         pavgd = 999
 
         ilist = random.sample(xrange(len(points)), self.k)
         self.centroids = np.array([points[i] for i in ilist])
         '''
         First k data points are centroids
-        '''
         for i in range(self.k):
             #self.centroids[i] = points[i]
             self.objective[i] = []
+        '''
 
         for rounds in range(self.miter):
             '''
@@ -52,9 +52,10 @@ class kmeans:
             '''
             for cluster in self.clusters:
                 self.centroids[cluster]=np.average(self.clusters[cluster], axis=0)
-                self.objective[cluster].append(np.average(self.distances[cluster], axis=0))
+                #self.objective[cluster.append(np.average(self.distances[cluster], axis=0))
                 avgdistance += np.average(self.distances[cluster], axis = 0)
 
+            self.objective.append(avgdistance)
             if pavgd - avgdistance < 0.0001:
                 break
             else:

@@ -10,17 +10,17 @@ def generate_weighted_list(weights, nsamples):
 '''
 We will generate K gaussians
 '''
-k=5
+k=3
 
 '''
 and nr points
 '''
-nr=100000
+nr=1000
 
 '''
 Each point is D dimentional
 '''
-D=10
+D=3
 
 '''
 We set variance to 0.8

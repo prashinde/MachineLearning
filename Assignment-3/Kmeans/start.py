@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from kmeans import kmeans
 
 '''
@@ -17,18 +18,15 @@ def readfile(fname):
 
     return np.asarray(xs), np.asarray(ys)
 
-fname='../Data/data_10_5_100000'
+fname = '../Data/data_10_5_100000'
 xs, ys = readfile(fname)
 points = np.column_stack((xs, ys))
-#print points
 
-k=4
+k=3
 nm = kmeans(k)
 centroids, clusters, objective = nm.cluster(points)
-
-for cluster in clusters:
-    plt.plot(objective[cluster], '--o')
-    plt.show()
+plt.plot(objective, '--o')
+plt.show()
 '''
 scls=[]
 for cluster in clusters:
