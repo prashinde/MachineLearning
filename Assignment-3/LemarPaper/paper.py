@@ -5,6 +5,15 @@ import pickle
 from collections import Counter
 import matplotlib.pyplot as plt
 from numpy.linalg import matrix_rank
+
+'''
+Normalizes each row of a given matrix to unit length
+'''
+def normalize_row(C):
+    l2 = np.atleast_1d(np.linalg.norm(C, 1, 1))
+    l2[l2==0] = 1
+    return C / np.expand_dims(l2, 1)
+
 '''
 Reduce rank of a vector U, by replacing N
 elements which are close to zero with zeros
@@ -49,7 +58,6 @@ Rcontext =  np.zeros((len(TypetoIndex), w1))
 PrevToken = '__SEQ__' 
 for sentence in sentences:
     for word in sentence:
-        print word['text'],
         if word['text'] != '__SEQ__' and not word['text'].isalpha():
             continue
         pretindex = TypetoIndex[PrevToken]
@@ -59,26 +67,28 @@ for sentence in sentences:
         if pretindex < w1:
             Lcontext[curindex][pretindex] += 1
         PrevToken = word['text']
-    print "\n--------------------------------------------------\n"
 
 #for i in range(len(Lcontext)):
 #    print "Word=", (TypeFreq.most_common())[i]," ", Lcontext[i]
 #print Lcontext
 #print "********************************"
 #print Rcontext
-plt.imshow(Lcontext, cmap='hot', interpolation='nearest')
-plt.show()
-'''
+#plt.imshow(Lcontext, cmap='hot', interpolation='nearest')
+#plt.show()
 print "Lcontext shape=", Lcontext.shape
-UL, SL, VL = np.linalg.svd(Lcontext, full_matrices=True)
+UL, SL, VL = np.linalg.svd(Lcontext, full_matrices=False)
+UR, SR, VR = np.linalg.svd(Rcontext, full_matrices=False)
 
-SL = reduce_rank(SL, 100)
+SL = reduce_rank(SL, 10)
+SR = reduce_rank(SR, 10)
 SLstar = SL*np.identity(len(SL))
-print matrix_rank(SLstar)
-Lstar = UL*SLstar
-plt.imshow(Lcontext, cmap='hot', interpolation='nearest')
-plt.show()
+SRstar = SR*np.identity(len(SR))
 
-plt.imshow(Lstar, cmap='hot', interpolation='nearest')
+Lstar = UL.dot(SLstar)
+Rstar = UR.dot(SRstar)
+
+Ldstar = normalize_row(Lstar)
+Rdstar = normalize_row(Rstar)
+D = np.concatenate((Ldstar, Rdstar), axis=1)
+plt.imshow(D, cmap='hot', interpolation='nearest')
 plt.show()
-'''
