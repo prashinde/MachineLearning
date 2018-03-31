@@ -1,6 +1,7 @@
 import json
 import numpy as np
 import operator
+import pickle
 import matplotlib.pyplot as plt
 from collections import Counter
 
@@ -20,6 +21,48 @@ def plot_hist(TagFreq):
     #plt.hist(Tags)
     #plt.setp(Tags, rotation=90)
     plt.show()
+
+'''
+Given Tags and a unicode character, returns the 
+frequency of tags followed and precedded by the tag which
+starts with give unicode character.
+'''
+def freqs_post_pre(Tags, C):
+    prec = {}
+    follow = {}
+    prevTag = Tags[0]
+
+    for tag in Tags[1:]:
+        if tag[0] == C:
+            if prevTag in prec:
+                prec[prevTag] += 1
+            else:
+                prec[prevTag] = 1
+        if prevTag[0] == C:
+            if tag in follow:
+                follow[tag] += 1
+            else:
+                follow[tag] = 1
+        prevTag = tag
+    return prec, follow
+
+'''
+Given humongous json and Tags,
+Return N sentences which contain that tag.
+'''
+def sentences_from_tag(data, tag, N):
+    rsentences=[]
+    r = 0
+    for section in data:
+        for sentence in data[section]:
+            for word in sentence:
+                if word['tag'] == tag:
+                    rsentences.append(sentence)
+                    r = r+1
+                    break
+                if r > N:
+                    return rsentences
+
 
 fname="../Data/a3-data/train.json"
 data = json.load(open(fname))
@@ -55,25 +98,38 @@ print "Number of types", ntypes
 TagFreq = Counter(Tags)
 #plot_hist(TagFreq)
 print "Number of Tags:", len(TagFreq)
-
-precNoun = {}
-followNoun = {}
-prevTag = Tags[0]
-
-for tag in Tags[1:]:
-    if tag[0] == 'N':
-        if prevTag in precNoun:
-            precNoun[prevTag] += 1
-        else:
-            precNoun[prevTag] = 1
-    if prevTag[0] == 'N':
-        if tag in followNoun:
-            followNoun[tag] += 1
-        else:
-            followNoun[tag] = 1
-    prevTag = tag
-
+'''
+precNoun, followNoun = freqs_post_pre(Tags, u'N')
 print "Most frequent tags which preced Noun are:", sorted(precNoun.items(), key=operator.itemgetter(1), reverse=True)[0:3]
 print "Most frequent tags which follow Noun are:", sorted(followNoun.items(), key=operator.itemgetter(1), reverse=True)[0:3]
 plot_hist(precNoun)
 plot_hist(followNoun)
+
+precVerb, followVerb = freqs_post_pre(Tags, u'V')
+print "Most frequent tags which preced Verb are:", sorted(precVerb.items(), key=operator.itemgetter(1), reverse=True)[0:3]
+print "Most frequent tags which follow Verb are:", sorted(followVerb.items(), key=operator.itemgetter(1), reverse=True)[0:3]
+plot_hist(precVerb)
+plot_hist(followVerb)
+'''
+
+sentences = sentences_from_tag(data, u'IN', 10)
+print "Sentences size", len(sentences)
+'''
+for sentence in sentences:
+    for word in sentence:
+        print word['text'],
+    print "\n"
+    print "-------------------"
+    for word in sentence:
+        print word['tag'],
+    print "\n"
+    print "*********************"
+
+    for word in sentence:
+        if word['tag'] == u'IN':
+            print word['text'],
+            print word['tag']
+    print "++++++++++++++++++++++++++++++++++"
+'''
+with open("toy_data", 'wb') as f:
+    pickle.dump(sentences, f)
