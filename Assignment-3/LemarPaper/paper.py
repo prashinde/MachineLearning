@@ -5,6 +5,7 @@ import pickle
 from collections import Counter
 import matplotlib.pyplot as plt
 from numpy.linalg import matrix_rank
+from kmeans import kmeans
 
 '''
 Normalizes each row of a given matrix to unit length
@@ -21,7 +22,7 @@ elements which are close to zero with zeros
 def reduce_rank(U, N):
     Uprime = U.flatten()
     Uprime.sort()
-    return np.where(U < Uprime[-N], 0, U)
+    return np.where(U <= Uprime[-N], 0, U)
 
 TypetoIndex = {}
 TypeFreq = Counter()
@@ -45,16 +46,17 @@ for wtype in TypeFreq.most_common():
 '''
 We are interested in only top 10 most frequent words
 '''
-w1 = 10
+w1 = 1000
 
 '''
 print most common w1 words
 '''
-print "Most common words"
-print TypeFreq.most_common()[0:w1]
+#print "Most common words"
+#print TypeFreq.most_common()[0:w1]
 Lcontext =  np.zeros((len(TypetoIndex), w1))
 Rcontext =  np.zeros((len(TypetoIndex), w1))
 
+print "Started computing Lcontext and Rcontext"
 PrevToken = '__SEQ__' 
 for sentence in sentences:
     for word in sentence:
@@ -68,6 +70,7 @@ for sentence in sentences:
             Lcontext[curindex][pretindex] += 1
         PrevToken = word['text']
 
+print "Done computing Lcontext and Rcontext"
 #for i in range(len(Lcontext)):
 #    print "Word=", (TypeFreq.most_common())[i]," ", Lcontext[i]
 #print Lcontext
@@ -76,19 +79,44 @@ for sentence in sentences:
 #plt.imshow(Lcontext, cmap='hot', interpolation='nearest')
 #plt.show()
 print "Lcontext shape=", Lcontext.shape
+del sentences
+#TypetoIndex
+#TypeFreq
+
+print "Started computing SVD"
 UL, SL, VL = np.linalg.svd(Lcontext, full_matrices=False)
 UR, SR, VR = np.linalg.svd(Rcontext, full_matrices=False)
 
-SL = reduce_rank(SL, 10)
-SR = reduce_rank(SR, 10)
+print "Done Computing SVD.."
+del Lcontext
+del Rcontext
+
+SL = reduce_rank(SL, 100)
+SR = reduce_rank(SR, 100)
+
 SLstar = SL*np.identity(len(SL))
 SRstar = SR*np.identity(len(SR))
 
+print "Matrix Rank:", np.linalg.matrix_rank(SLstar)
+print SLstar.shape, UL.shape
 Lstar = UL.dot(SLstar)
 Rstar = UR.dot(SRstar)
 
 Ldstar = normalize_row(Lstar)
+del Lstar
 Rdstar = normalize_row(Rstar)
+del Rstar
+
 D = np.concatenate((Ldstar, Rdstar), axis=1)
-plt.imshow(D, cmap='hot', interpolation='nearest')
-plt.show()
+del Ldstar
+del Rdstar
+
+k = 500
+nm = kmeans(k)
+centroids = nm.cluster(D, TypeFreq)
+
+
+#with open("Dmatrix", 'wb') as f:
+#    pickle.dump(D, f, -1)
+#plt.imshow(D, cmap='hot', interpolation='nearest')
+#plt.show()
