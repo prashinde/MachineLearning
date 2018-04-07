@@ -11,12 +11,9 @@ from numpy.linalg import matrix_rank
 Normalizes each row of a given matrix to unit length
 '''
 def normalize_row(C):
-    l2 = np.atleast_1d(np.linalg.norm(C, 2, 1))
+    l2 = np.atleast_1d(np.linalg.norm(C, ord=2, axis=1))
     l2[l2==0] = 1
     return C / np.expand_dims(l2, 1)
-    #l2 = C.sum(axis=1)
-    #l2[l2 == 0] = 1
-    #return C/l2[:, None]
 
 '''
 Reduce rank of a vector U, by replacing N
@@ -117,14 +114,14 @@ for section in data:
         nsent = nsent+1
         for word in sentence:
             Tags.append(word['tag'])
-            if(word['text'].isalpha()):
-                ntokens = ntokens+1
-                stype = word['text'].lower()
-                if stype not in Types:
-                    ntypes += 1
-                    Types[stype] = 1
-                else:
-                    Types[stype] += 1
+            #if(word['text'].isalpha()):
+            ntokens = ntokens+1
+            stype = word['text'].lower()
+            if stype not in Types:
+                ntypes += 1
+                Types[stype] = 1
+            else:
+                Types[stype] += 1
 
 print "Summary is as follows:"
 print "Number of sections:", nsec
@@ -174,8 +171,8 @@ TypeFreq = Counter()
 
 for sentence in sentences:
     for word in sentence:
-        if (word['text'] == '__SEQ__') or (word['text'].isalpha()):
-            TypeFreq[word['text']] += 1
+        #if (word['text'] == '__SEQ__') or (word['text'].isalpha()):
+        TypeFreq[word['text']] += 1
 
 index = 0
 it = 0
@@ -199,8 +196,8 @@ print "Started computing Lcontext and Rcontext"
 PrevToken = '__SEQ__' 
 for sentence in sentences:
     for word in sentence:
-        if word['text'] != '__SEQ__' and not word['text'].isalpha():
-            continue
+        #if word['text'] != '__SEQ__' and not word['text'].isalpha():
+        #    continue
         pretindex = TypetoIndex[PrevToken]
         curindex = TypetoIndex[word['text']]
         if curindex < w1:

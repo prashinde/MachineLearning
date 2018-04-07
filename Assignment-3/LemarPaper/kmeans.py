@@ -2,20 +2,27 @@ import numpy as np
 import random
 
 class kmeans:
-    def __init__(self, k=5, miter=60):
+    def __init__(self, k=5, miter=10):
         self.k = k
         self.miter = miter
 
     def normalize_row(self, C):
-        l2 = np.atleast_1d(np.linalg.norm(C, 2, 0))
+        '''
+        compute on seperate left and right descriptors
+        '''
+        ldesc = C[0:1000]
+        rdesc = C[1000:2000]
+
+        l2 = np.atleast_1d(np.linalg.norm(ldesc, ord=2, axis=0))
         if l2 == 0:
             l2 = 1
-        return C / l2
-        #l2 = C.sum(axis=0)
-        #if l2 == 0:
-        #    l2 = 1
-        #return C/l2
+        ldesc = ldesc / l2
 
+        l2 = np.atleast_1d(np.linalg.norm(rdesc, ord=2, axis=0))
+        if l2 == 0:
+            l2 = 1
+        rdesc = rdesc / l2
+        return np.concatenate((ldesc, rdesc))
 
     def newCentroid(self, pointlist, TypeFreq, D):
         centroid = np.zeros(D[0].shape, dtype=np.float)
@@ -66,17 +73,15 @@ class kmeans:
             '''
 
             ddistance = points.dot(self.centroids.T)
-            print ddistance.shape
             for point in points:
-                #edistance = [np.linalg.norm(point-centroid) for centroid in self.centroids]
                 cluster = np.argmax(ddistance[idx])
                 self.clusters[cluster].append(idx)
                 if not np.isnan(ddistance[idx][cluster]):
                     self.distances[cluster].append(ddistance[idx][cluster])
                     avgdistance = avgdistance + ddistance[idx][cluster]
-                    #print ddistance[idx][cluster], " ",
                 idx = idx + 1
 
+            sums = np.array([])
             #print '************************************************'
             for cluster in self.clusters:
                 if len(self.clusters[cluster]) > 0:
@@ -84,12 +89,10 @@ class kmeans:
                     #print self.centroids[cluster]
                     #self.objective[cluster].append(np.average(self.distances[cluster], axis=0))
                     #avgdistance = avgdistance+sum(self.distances[cluster])
-                else:
-                    print cluster, "has noone assigned..."
+                    sums = np.append(sums, sum(self.distances[cluster]))
             #print '---------------------------------------------------'
-
-            if not rounds == 0:
-                self.objective.append(avgdistance)
+            #if not rounds == 0:
+            self.objective.append(avgdistance)
             print "Finished Round", rounds
             print pavgd, avgdistance, abs(pavgd-avgdistance)
             if abs(pavgd - avgdistance) < 0.0001:
