@@ -128,6 +128,8 @@ print "Number of sections:", nsec
 print "Number of sentences:", nsent
 print "Number of tokens", ntokens
 print "Number of types", ntypes
+TagFreq = Counter(Tags)
+print "Number of Tags:", len(TagFreq)
 '''
 TagFreq = Counter(Tags)
 plot_hist(TagFreq)

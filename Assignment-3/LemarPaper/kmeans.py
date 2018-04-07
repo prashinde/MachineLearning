@@ -1,8 +1,8 @@
 import numpy as np
 import random
-
+import json
 class kmeans:
-    def __init__(self, k=5, miter=10):
+    def __init__(self, k=5, miter=2):
         self.k = k
         self.miter = miter
 
@@ -10,8 +10,8 @@ class kmeans:
         '''
         compute on seperate left and right descriptors
         '''
-        ldesc = C[0:1000]
-        rdesc = C[1000:2000]
+        ldesc = C[0:500]
+        rdesc = C[500:1000]
 
         l2 = np.atleast_1d(np.linalg.norm(ldesc, ord=2, axis=0))
         if l2 == 0:
@@ -43,6 +43,7 @@ class kmeans:
         TypeFreqS = TypetoFreq.most_common()
         pavgd = 999
 
+        print points.shape
         #ilist = random.sample(xrange(len(points)), self.k)
 
         '''
@@ -71,7 +72,6 @@ class kmeans:
             Points . Centroids.T = Nt x 2000 . 2000 x k
             result is Ntxk
             '''
-
             ddistance = points.dot(self.centroids.T)
             for point in points:
                 cluster = np.argmax(ddistance[idx])
@@ -95,10 +95,10 @@ class kmeans:
             self.objective.append(avgdistance)
             print "Finished Round", rounds
             print pavgd, avgdistance, abs(pavgd-avgdistance)
-            if abs(pavgd - avgdistance) < 0.0001:
-                break
-            else:
-                pavgd = avgdistance
-                avgdistance = 0
+            #if abs(pavgd - avgdistance) < 0.0001:
+            #    break
+            #else:
+            #    pavgd = avgdistance
+            #    avgdistance = 0
         return self.centroids, self.clusters, self.objective
         #return self.centroids
