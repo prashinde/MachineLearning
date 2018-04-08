@@ -90,11 +90,10 @@ def all_sentences(data, N):
     r = 0
     for section in data:
         for sentence in data[section]:
-            for word in sentence:
-                    rsentences.append(sentence)
-                    r = r+1
-                    if (N != 0) and (r > N):
-                        return rsentences
+            rsentences.append(sentence)
+            r = r+1
+            if (N != 0) and (r > N):
+                return rsentences
     return rsentences
 
 fname="../Data/a3-data/train.json"
@@ -114,7 +113,6 @@ for section in data:
         nsent = nsent+1
         for word in sentence:
             Tags.append(word['tag'])
-            #if(word['text'].isalpha()):
             ntokens = ntokens+1
             stype = word['text'].lower()
             if stype not in Types:
@@ -130,10 +128,8 @@ print "Number of tokens", ntokens
 print "Number of types", ntypes
 TagFreq = Counter(Tags)
 print "Number of Tags:", len(TagFreq)
-'''
-TagFreq = Counter(Tags)
 plot_hist(TagFreq)
-print "Number of Tags:", len(TagFreq)
+
 precNoun, followNoun = freqs_post_pre(Tags, u'N')
 print "Most frequent tags which preced Noun are:", sorted(precNoun.items(), key=operator.itemgetter(1), reverse=True)[0:3]
 print "Most frequent tags which follow Noun are:", sorted(followNoun.items(), key=operator.itemgetter(1), reverse=True)[0:3]
@@ -146,8 +142,6 @@ print "Most frequent tags which follow Verb are:", sorted(followVerb.items(), ke
 plot_hist(precVerb)
 plot_hist(followVerb)
 
-'''
-#sentences = sentences_from_tag(data, u'IN', 10)
 sentences = all_sentences(data, 0)
 print "Sentences size", len(sentences)
 '''
@@ -173,16 +167,15 @@ TypeFreq = Counter()
 
 for sentence in sentences:
     for word in sentence:
-        #if (word['text'] == '__SEQ__') or (word['text'].isalpha()):
-        TypeFreq[word['text']] += 1
+        TypeFreq[word['text'].lower()] += 1
 
 index = 0
 it = 0
 for wtype in TypeFreq.most_common():
-    if wtype[0] not in TypetoIndex:
-        TypetoIndex[wtype[0]] = index
+    stype = wtype[0].lower()
+    if stype not in TypetoIndex:
+        TypetoIndex[stype] = index
         index = index+1
-
 '''
 We are interested in only top 10 most frequent words
 '''
@@ -195,18 +188,19 @@ Lcontext =  np.zeros((len(TypetoIndex), w1))
 Rcontext =  np.zeros((len(TypetoIndex), w1))
 
 print "Started computing Lcontext and Rcontext"
-PrevToken = '__SEQ__' 
+PrevToken = '__seq__' 
 for sentence in sentences:
     for word in sentence:
         #if word['text'] != '__SEQ__' and not word['text'].isalpha():
         #    continue
+        stype = word['text'].lower()
         pretindex = TypetoIndex[PrevToken]
-        curindex = TypetoIndex[word['text']]
+        curindex = TypetoIndex[stype]
         if curindex < w1:
             Rcontext[pretindex][curindex] += 1
         if pretindex < w1:
             Lcontext[curindex][pretindex] += 1
-        PrevToken = word['text']
+        PrevToken = stype
 
 print "Done computing Lcontext and Rcontext"
 #for i in range(len(Lcontext)):
@@ -216,7 +210,6 @@ print "Done computing Lcontext and Rcontext"
 #print Rcontext
 #plt.imshow(Lcontext, cmap='hot', interpolation='nearest')
 #plt.show()
-print "Lcontext shape=", Lcontext.shape
 del sentences
 #TypetoIndex
 #TypeFreq

@@ -35,11 +35,10 @@ def all_sentences(data, N):
     r = 0
     for section in data:
         for sentence in data[section]:
-            for word in sentence:
-                    rsentences.append(sentence)
-                    r = r+1
-                    if (N != 0) and (r > N):
-                        return rsentences
+            rsentences.append(sentence)
+            r = r+1
+            if (N != 0) and (r > N):
+                return rsentences
     return rsentences
 
 def cluster_index(clusters, N):
@@ -66,7 +65,7 @@ with open("Frequency", "rb") as f:
 f.close()
 
 k = 500
-nm = kmeans(k, 2)
+nm = kmeans(k, 20)
 centroids, clusters, objective = nm.cluster(D, TypeFreq)
 #plt.plot(objective, '--o')
 #plt.show()
@@ -76,8 +75,9 @@ TypetoIndex = {}
 index = 0
 TFMC = TypeFreq.most_common()
 for wtype in TFMC:
-    if wtype[0] not in TypetoIndex:
-        TypetoIndex[wtype[0]] = index
+    stype = wtype[0].lower()
+    if stype not in TypetoIndex:
+        TypetoIndex[stype] = index
         index = index+1
 
 del TFMC
@@ -108,19 +108,19 @@ for i in range(len(TypetoIndex)):
 print 'Done Computing cluster indices'
 
 print "Started computing Lcontext and Rcontext"
-PrevToken = '__SEQ__' 
+PrevToken = '__seq__' 
 for sentence in sentences:
     for word in sentence:
+        stype = word['text'].lower()
         pretindex = TypetoIndex[PrevToken]
-        curindex = TypetoIndex[word['text']]
+        curindex = TypetoIndex[stype]
 
         pclusterindex = wordtocindex[pretindex]
         cclusterindex = wordtocindex[curindex]
-        if Rcontext[pretindex][cclusterindex] == 0:
-            Rcontext[pretindex][cclusterindex] += len(clusters[cclusterindex])
-        if Lcontext[curindex][pclusterindex] == 0:
-            Lcontext[curindex][pclusterindex] += len(clusters[pclusterindex])
-        PrevToken = word['text']
+        Rcontext[pretindex][cclusterindex] += 1
+        Lcontext[curindex][pclusterindex] += 1
+        PrevToken = stype
+
 print Lcontext[200]
 print "Done computing Lcontext and Rcontext"
 

@@ -10,8 +10,8 @@ class kmeans:
         '''
         compute on seperate left and right descriptors
         '''
-        ldesc = C[0:500]
-        rdesc = C[500:1000]
+        ldesc = C[0:len(C)/2]
+        rdesc = C[len(C)/2:]
 
         l2 = np.atleast_1d(np.linalg.norm(ldesc, ord=2, axis=0))
         if l2 == 0:
@@ -35,6 +35,16 @@ class kmeans:
             centroid = centroid/tfreq
         return self.normalize_row(centroid)
 
+    def assignCluster(self, centroids, points, TypeFreq):
+        wordtocluster = {}
+        ddistance = points.dot(self.centroids.T)
+        TypeFreqMC = TypeFreq.most_common()
+        idx = 0
+        for point in points:
+            cluster = np.argmax(ddistance[idx])
+            wordtocluster[TypeFreqMC[idx][0]] = cluster
+            idx = idx + 1
+        return wordtocluster
 
     def cluster(self, points, TypetoFreq):
         self.centroids = np.zeros(self.k*points.shape[1], dtype=float)
@@ -95,10 +105,10 @@ class kmeans:
             self.objective.append(avgdistance)
             print "Finished Round", rounds
             print pavgd, avgdistance, abs(pavgd-avgdistance)
-            #if abs(pavgd - avgdistance) < 0.0001:
-            #    break
-            #else:
-            #    pavgd = avgdistance
-            #    avgdistance = 0
+            if abs(pavgd - avgdistance) < 0.001:
+                break
+            else:
+                pavgd = avgdistance
+                avgdistance = 0
         return self.centroids, self.clusters, self.objective
         #return self.centroids
