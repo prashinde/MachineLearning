@@ -20,7 +20,7 @@ class manytoone:
         for cluster in self.clusters:
             Tags=[]
             for point in self.clusters[cluster]:
-                Tags.append(self.tags[(self.TypeFreqs[point][0]).lower()])
+                Tags.append(self.tags[self.TypeFreqs[point][0].lower()])
 
             counter = Counter(Tags)
             clustertotag[cluster] = counter.most_common()[0][0]
@@ -34,6 +34,7 @@ class manytoone:
         for cluster in self.clusters:
             cctag = clustertags[cluster]
             for point in self.clusters[cluster]:
+
                 wtag = self.tags[(self.TypeFreqs[point][0]).lower()]
                 if wtag == cctag:
                     correct = correct+1

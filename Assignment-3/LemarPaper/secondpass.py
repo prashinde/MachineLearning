@@ -51,8 +51,9 @@ with open("Frequency", "rb") as f:
     TypeFreq = pickle.load(f)
 f.close()
 
-k = 48
-nm = kmeans(k, 80)
+#TypeFreq['ovv'] = 0
+k = 45
+nm = kmeans(k, 30)
 centroids, clusters, objective = nm.cluster(D, TypeFreq)
 #plt.plot(objective, '--o')
 #plt.show()
@@ -68,27 +69,40 @@ for section in data:
     for sentence in data[section]:
         for word in sentence:
             stype = word['text'].lower()
-            if stype not in GoldenTags:
-                GoldenTags[stype] = word['tag']
+            GoldenTags[stype] = word['tag']
+
+GoldenTags['ovv'] = 'ovv'
 print 'Golden Tags computation done'
 
-wordtocindex={}
+trwordtocindex = {}
+trwordtocluster = {}
+
+trclustertoword = {}
+
+for i in range(k):
+    trclustertoword[i] = []
+
+TFMC = TypeFreq.most_common()
 
 print 'Computing cluster indices'
 for i in range(len(TypeFreq)):
-    wordtocindex[i] = cluster_index(clusters, i)
+    trwordtocindex[i] = cluster_index(clusters, i)
+    trwordtocluster[TFMC[i][0]] = trwordtocindex[i]
+    trclustertoword[trwordtocindex[i]].append(TFMC[i][0])
 print 'Done Computing cluster indices'
 
 mtoone = manytoone(clusters, GoldenTags, TypeFreq)
 
 clustertags = mtoone.assign()
+
+print "***********************************************************"
+print "training Tags"
+print clustertags
+print "***********************************************************"
 accuracy = mtoone.evaluate(clusters, clustertags)
 print "Accuracy of many to one", accuracy
 
 del GoldenTags
-
-wordtocluster = {}
-#TODO: Build word to cluster mapping.
 
 fname = "../Data/a3-data/dev.json"
 data = json.load(open(fname))
@@ -98,84 +112,78 @@ TypeFreq = Counter()
 
 sentences = all_sentences(data, 0)
 
-for sentence in sentences:
-    for word in sentence:
-        stype = word['text'].lower()
-        TypeFreq[stype] += 1
+devclusters = {}
 
-index = 0
-for wtype in TypeFreq.most_common():
-    stype = wtype[0].lower()
-    if stype not in TypetoIndex:
-        TypetoIndex[stype] = index
-        index = index+1
-
-Lcontext =  np.zeros((len(TypetoIndex), 500))
-Rcontext =  np.zeros((len(TypetoIndex), 500))
-
-
-print "Started computing Lcontext and Rcontext"
-PrevToken = '__seq__' 
-for sentence in sentences:
-    for word in sentence:
-        stype = word['text'].lower()
-        pretindex = TypetoIndex[PrevToken]
-        curindex = TypetoIndex[stype]
-
-        pclusterindex = wordtocindex[pretindex]
-        cclusterindex = wordtocindex[curindex]
-        Rcontext[pretindex][cclusterindex] += 1
-        Lcontext[curindex][pclusterindex] += 1
-        PrevToken = stype
-print "Done computing Lcontext and Rcontext"
-
-del sentences
-#TypetoIndex
-#TypeFreq
-
-print "Started computing SVD"
-UL, SL, VL = np.linalg.svd(Lcontext, full_matrices=False)
-UR, SR, VR = np.linalg.svd(Rcontext, full_matrices=False)
-print "Done Computing SVD.."
-del Lcontext
-del Rcontext
-
-SLstar = SL*np.identity(len(SL))
-SRstar = SR*np.identity(len(SR))
-
-Lstar = UL.dot(SLstar)
-Rstar = UR.dot(SRstar)
-
-Ldstar = normalize_row(Lstar)
-del Lstar
-Rdstar = normalize_row(Rstar)
-del Rstar
-
-D = np.concatenate((Ldstar, Rdstar), axis=1)
-del Ldstar
-del Rdstar
-
-'''
-Dictionary of word to cluster
-'''
-assignment = nm.assignCluster(centroids, D, TypeFreq)
-
-GoldenTags = {}
-print 'Started computing Golden Tags...'
-for section in data:
-    for sentence in data[section]:
-        for word in sentence:
-            stype = word['text'].lower()
-            if stype not in GoldenTags:
-                GoldenTags[stype] = word['tag']
-print 'Golden Tags computation done'
+for i in range(k):
+    devclusters[i] = []
 
 correct = 0
+incorrect = 0
 total = 0
-for key,value in assignment.items():
-    if GoldenTags[key] == clustertags[value]:
-        correct = correct+1
-    print "predicted:", clustertags[value], ' correct:', GoldenTags[key]
-    total = total+1
+for sentence in sentences:
+    for word in sentence:
+        stype = word['text'].lower()
+        if stype in trwordtocluster:
+            cindex = trwordtocluster[stype]
+            devclusters[cindex].append(word)
 
-print "Accuracy on Dev data is", float(correct)/float(total)
+clustertotag = {}
+debug_acc = 0
+twords = 0
+for cluster in devclusters:
+    Tags=[]
+    for word in devclusters[cluster]:
+        Tags.append(word['tag'])
+        twords += 1
+
+    counter = Counter(Tags)
+    clustertotag[cluster] = counter.most_common()[0][0]
+    debug_acc = debug_acc + counter.most_common()[0][1]
+
+print "***********************************************************"
+print "development tags"
+print clustertotag
+print "***********************************************************"
+print "Accuracy on Dev data is", float(debug_acc)/float(twords)
+
+fname = "../Data/a3-data/test.json"
+data = json.load(open(fname))
+
+TypetoIndex = {}
+TypeFreq = Counter()
+
+sentences = all_sentences(data, 0)
+
+testclusters = {}
+
+for i in range(k):
+    testclusters[i] = []
+
+correct = 0
+incorrect = 0
+total = 0
+for sentence in sentences:
+    for word in sentence:
+        stype = word['text'].lower()
+        if stype in trwordtocluster:
+            cindex = trwordtocluster[stype]
+            testclusters[cindex].append(word)
+
+clustertotag = {}
+debug_acc = 0
+twords = 0
+for cluster in testclusters:
+    Tags=[]
+    for word in testclusters[cluster]:
+        Tags.append(word['tag'])
+        twords += 1
+
+    counter = Counter(Tags)
+    clustertotag[cluster] = counter.most_common()[0][0]
+    debug_acc = debug_acc + counter.most_common()[0][1]
+
+print "***********************************************************"
+print "Test tags"
+print clustertotag
+print "***********************************************************"
+print "Accuracy on Test data is", float(debug_acc)/float(twords)

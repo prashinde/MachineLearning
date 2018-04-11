@@ -20,9 +20,8 @@ Reduce rank of a vector U, by replacing N
 elements which are close to zero with zeros
 '''
 def reduce_rank(U, N):
-    Uprime = U.flatten()
-    Uprime.sort()
-    return np.where(U <= Uprime[-N], 0, U)
+    U[-N:] = 0
+    return U
 
 def take(n, iterable):
     return list(islice(iterable, n))
@@ -128,6 +127,7 @@ print "Number of tokens", ntokens
 print "Number of types", ntypes
 TagFreq = Counter(Tags)
 print "Number of Tags:", len(TagFreq)
+'''
 plot_hist(TagFreq)
 
 precNoun, followNoun = freqs_post_pre(Tags, u'N')
@@ -141,27 +141,8 @@ print "Most frequent tags which preced Verb are:", sorted(precVerb.items(), key=
 print "Most frequent tags which follow Verb are:", sorted(followVerb.items(), key=operator.itemgetter(1), reverse=True)[0:3]
 plot_hist(precVerb)
 plot_hist(followVerb)
-
+'''
 sentences = all_sentences(data, 0)
-print "Sentences size", len(sentences)
-'''
-for sentence in sentences:
-    for word in sentence:
-        print word['text'],
-    print "\n"
-    print "-------------------"
-    for word in sentence:
-        print word['tag'],
-    print "\n"
-    print "*********************"
-
-    for word in sentence:
-        if word['tag'] == u'IN':
-            print word['text'],
-            print word['tag']
-    print "++++++++++++++++++++++++++++++++++"
-'''
-
 TypetoIndex = {}
 TypeFreq = Counter()
 
@@ -169,39 +150,79 @@ for sentence in sentences:
     for word in sentence:
         TypeFreq[word['text'].lower()] += 1
 
+#TypeFreq['ovv'] = 0
+
 index = 0
-it = 0
 for wtype in TypeFreq.most_common():
     stype = wtype[0].lower()
-    if stype not in TypetoIndex:
-        TypetoIndex[stype] = index
-        index = index+1
+    TypetoIndex[stype] = index
+    index = index+1
+
+Mostcommon = dict(TypeFreq.most_common(1000))
 '''
 We are interested in only top 10 most frequent words
 '''
 w1 = 1000
 
-'''
-print most common w1 words
-'''
-Lcontext =  np.zeros((len(TypetoIndex), w1))
-Rcontext =  np.zeros((len(TypetoIndex), w1))
+oovC = 1000
+#oovR = len(TypetoIndex)-1
+
+#tau = 5
+Lcontext =  np.zeros((len(TypetoIndex), w1+1))
+Rcontext =  np.zeros((len(TypetoIndex), w1+1))
 
 print "Started computing Lcontext and Rcontext"
 PrevToken = '__seq__' 
 for sentence in sentences:
-    for word in sentence:
-        #if word['text'] != '__SEQ__' and not word['text'].isalpha():
-        #    continue
-        stype = word['text'].lower()
-        pretindex = TypetoIndex[PrevToken]
+    for curw, nextw in zip(sentence, sentence[1:]):
+        ctype = curw['text'].lower()
+        ntype = nextw['text'].lower()
+        curindex = TypetoIndex[ctype]
+        nextindex = TypetoIndex[ntype]
+        '''
+        if TypeFreq[ctype] < tau and TypeFreq[ntype] < tau:
+            Lcontext[oovR][oovC] += 1
+            Rcontext[oovR][oovC] += 1
+            continue
+        '''
+
+        #if TypeFreq[ctype] < tau:
+        #    Lcontext[nextindex][oovC] += 1
+        if ctype in Mostcommon:
+            Lcontext[nextindex][curindex] += 1
+        else:
+            Lcontext[nextindex][oovC] += 1
+
+        #if TypeFreq[ntype] < tau:
+        #    Rcontext[curindex][oovC] += 1
+        if ntype in Mostcommon:
+            Rcontext[curindex][nextindex] += 1
+        else:
+            Rcontext[curindex][oovC] += 1
+        '''
+        #stype = word['text'].lower()
+        pretindex = TypetoIndex[curw.lower()]
         curindex = TypetoIndex[stype]
+
+        if TypeFreq[stype] < tau and TypeFreq[PrevToken] < tau:
+            Lcontext[ovvR][ovvC] += 1
+            Rcontext[ovvR][ovvC] += 1
+            continue
+        #if TypeFreq[stype] < tau:
+        #    Rcontext[pretindex][ovvC] += 1
         if curindex < w1:
             Rcontext[pretindex][curindex] += 1
+        else:
+            Rcontext[pretindex][ovvC] += 1
+
+        #if TypeFreq[PrevToken] < tau:
+        #    Lcontext[curindex][ovvC] += 1
         if pretindex < w1:
             Lcontext[curindex][pretindex] += 1
+        else:
+            Lcontext[curindex][ovvC] += 1
         PrevToken = stype
-
+        '''
 print "Done computing Lcontext and Rcontext"
 #for i in range(len(Lcontext)):
 #    print "Word=", (TypeFreq.most_common())[i]," ", Lcontext[i]
@@ -221,13 +242,14 @@ f.close()
 print "Started computing SVD"
 UL, SL, VL = np.linalg.svd(Lcontext, full_matrices=False)
 UR, SR, VR = np.linalg.svd(Rcontext, full_matrices=False)
-print UL.shape
 print "Done Computing SVD.."
 del Lcontext
 del Rcontext
 
-SL = reduce_rank(SL, 100)
-SR = reduce_rank(SR, 100)
+SL = reduce_rank(SL, 901)
+SR = reduce_rank(SR, 901)
+
+print SL
 
 SLstar = SL*np.identity(len(SL))
 SRstar = SR*np.identity(len(SR))
@@ -244,7 +266,7 @@ D = np.concatenate((Ldstar, Rdstar), axis=1)
 del Ldstar
 del Rdstar
 
-print D.shape
+print np.linalg.norm(D)
 #k = 500
 #nm = kmeans(k)
 #centroids = nm.cluster(D, TypeFreq)

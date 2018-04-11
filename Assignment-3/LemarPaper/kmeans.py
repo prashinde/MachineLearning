@@ -33,7 +33,8 @@ class kmeans:
             centroid = centroid+(freq*D[point])
         if tfreq != 0:
             centroid = centroid/tfreq
-        return self.normalize_row(centroid)
+        nc = self.normalize_row(centroid)
+        return nc
 
     def assignCluster(self, centroids, points, TypeFreq):
         wordtocluster = {}
@@ -50,16 +51,20 @@ class kmeans:
         self.centroids = np.zeros(self.k*points.shape[1], dtype=float)
         self.centroids = self.centroids.reshape((self.k, points.shape[1]))
         self.objective = []
-        TypeFreqS = TypetoFreq.most_common()
-        pavgd = 999
+        
+        self.olcentroids = np.zeros(self.k*points.shape[1], dtype=float)
+        self.olcentroids = self.centroids.reshape((self.k, points.shape[1]))
 
-        print points.shape
+        TypeFreqS = TypetoFreq.most_common()
+        pavgd = 0
+
         #ilist = random.sample(xrange(len(points)), self.k)
 
         '''
         Pickup first k points from TypetoFreq as centroid
         '''
         self.centroids = points[0:self.k]
+
         '''
         First k data points are centroids
         for i in range(self.k):
@@ -86,29 +91,22 @@ class kmeans:
             for point in points:
                 cluster = np.argmax(ddistance[idx])
                 self.clusters[cluster].append(idx)
-                if not np.isnan(ddistance[idx][cluster]):
-                    self.distances[cluster].append(ddistance[idx][cluster])
-                    avgdistance = avgdistance + ddistance[idx][cluster]
+                #elf.distances[cluster].append(ddistance[idx][cluster])
+                avgdistance = avgdistance + ddistance[idx][cluster]
                 idx = idx + 1
 
-            sums = np.array([])
-            #print '************************************************'
             for cluster in self.clusters:
-                if len(self.clusters[cluster]) > 0:
-                    self.centroids[cluster] = self.newCentroid(self.clusters[cluster], TypeFreqS, points)
-                    #print self.centroids[cluster]
-                    #self.objective[cluster].append(np.average(self.distances[cluster], axis=0))
-                    #avgdistance = avgdistance+sum(self.distances[cluster])
-                    sums = np.append(sums, sum(self.distances[cluster]))
-            #print '---------------------------------------------------'
-            #if not rounds == 0:
+                #if len(self.clusters[cluster]) > 0:
+                #self.centroids[cluster]
+                nc = self.newCentroid(self.clusters[cluster], TypeFreqS, points)
+                self.centroids[cluster] = nc
+
             self.objective.append(avgdistance)
             print "Finished Round", rounds
-            print pavgd, avgdistance, abs(pavgd-avgdistance)
-            if abs(pavgd - avgdistance) < 0.001:
+            print avgdistance, avgdistance-pavgd
+            if avgdistance - pavgd < 0.001:
                 break
             else:
                 pavgd = avgdistance
-                avgdistance = 0
         return self.centroids, self.clusters, self.objective
         #return self.centroids

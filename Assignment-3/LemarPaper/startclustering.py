@@ -21,9 +21,10 @@ Reduce rank of a vector U, by replacing N
 elements which are close to zero with zeros
 '''
 def reduce_rank(U, N):
-    Uprime = U.flatten()
-    Uprime.sort()
-    return np.where(U <= Uprime[-N], 0, U)
+    U = U.flatten()
+    U.sort()
+    U[-N:len(U)] = 0
+    return U
 
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     if a == 0:
@@ -65,7 +66,7 @@ with open("Frequency", "rb") as f:
 f.close()
 
 k = 500
-nm = kmeans(k, 20)
+nm = kmeans(k, 36)
 centroids, clusters, objective = nm.cluster(D, TypeFreq)
 #plt.plot(objective, '--o')
 #plt.show()
@@ -120,8 +121,6 @@ for sentence in sentences:
         Rcontext[pretindex][cclusterindex] += 1
         Lcontext[curindex][pclusterindex] += 1
         PrevToken = stype
-
-print Lcontext[200]
 print "Done computing Lcontext and Rcontext"
 
 del sentences
@@ -135,8 +134,8 @@ print "Done Computing SVD.."
 del Lcontext
 del Rcontext
 
-SL = reduce_rank(SL, 300)
-SR = reduce_rank(SR, 300)
+SL = reduce_rank(SL, k-200)
+SR = reduce_rank(SR, k-200)
 
 SLstar = SL*np.identity(len(SL))
 SRstar = SR*np.identity(len(SR))
