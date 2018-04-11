@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from numpy.linalg import matrix_rank
 from kmeans import kmeans
 from manytoone import manytoone
+from onetoone import onetoone
 import json
 
 '''
@@ -53,7 +54,7 @@ f.close()
 
 #TypeFreq['ovv'] = 0
 k = 45
-nm = kmeans(k, 30)
+nm = kmeans(k, 80)
 centroids, clusters, objective = nm.cluster(D, TypeFreq)
 #plt.plot(objective, '--o')
 #plt.show()
@@ -64,6 +65,7 @@ GoldenTags = {}
 fname = "../Data/a3-data/train.json"
 data = json.load(open(fname))
 
+allwords = []
 print 'Started computing Golden Tags...'
 for section in data:
     for sentence in data[section]:
@@ -78,17 +80,21 @@ trwordtocindex = {}
 trwordtocluster = {}
 
 trclustertoword = {}
+ntrclustertoword = {}
 
 for i in range(k):
     trclustertoword[i] = []
 
 TFMC = TypeFreq.most_common()
 
+uniquewords = []
 print 'Computing cluster indices'
 for i in range(len(TypeFreq)):
     trwordtocindex[i] = cluster_index(clusters, i)
     trwordtocluster[TFMC[i][0]] = trwordtocindex[i]
-    trclustertoword[trwordtocindex[i]].append(TFMC[i][0])
+    word = {'text':TFMC[i][0], 'tag':GoldenTags[TFMC[i][0]]}
+    uniquewords.append(word)
+    trclustertoword[trwordtocindex[i]].append(word)
 print 'Done Computing cluster indices'
 
 mtoone = manytoone(clusters, GoldenTags, TypeFreq)
@@ -96,11 +102,21 @@ mtoone = manytoone(clusters, GoldenTags, TypeFreq)
 clustertags = mtoone.assign()
 
 print "***********************************************************"
-print "training Tags"
+print "training Tags: Many to One"
 print clustertags
 print "***********************************************************"
 accuracy = mtoone.evaluate(clusters, clustertags)
 print "Accuracy of many to one", accuracy
+
+onetone = onetoone(trclustertoword, trclustertoword)
+clustertags = onetone.assign()
+
+print "***********************************************************"
+print "training Tags: One to One"
+print clustertags
+
+print "Accuracy is:", onetone.accuracy(clustertags)
+print "***********************************************************"
 
 del GoldenTags
 
@@ -146,6 +162,17 @@ print clustertotag
 print "***********************************************************"
 print "Accuracy on Dev data is", float(debug_acc)/float(twords)
 
+onetone = onetoone(trclustertoword, devclusters)
+clustertags = onetone.assign()
+
+print "***********************************************************"
+print "development Tags: One to One"
+print clustertags
+
+print "Accuracy is:", onetone.accuracy(clustertags)
+print "***********************************************************"
+
+
 fname = "../Data/a3-data/test.json"
 data = json.load(open(fname))
 
@@ -183,7 +210,17 @@ for cluster in testclusters:
     debug_acc = debug_acc + counter.most_common()[0][1]
 
 print "***********************************************************"
-print "Test tags"
+print "Test tags: Many to One"
 print clustertotag
 print "***********************************************************"
 print "Accuracy on Test data is", float(debug_acc)/float(twords)
+
+onetone = onetoone(trclustertoword, testclusters)
+clustertags = onetone.assign()
+
+print "***********************************************************"
+print "development Tags: One to One"
+print clustertags
+
+print "Accuracy is:", onetone.accuracy(clustertags)
+print "***********************************************************"
