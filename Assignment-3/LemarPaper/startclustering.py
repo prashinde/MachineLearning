@@ -65,7 +65,7 @@ with open("Frequency", "rb") as f:
     TypeFreq = pickle.load(f)
 f.close()
 
-k = 500
+k = 650
 nm = kmeans(k, 36)
 centroids, clusters, objective = nm.cluster(D, TypeFreq)
 #plt.plot(objective, '--o')
@@ -90,14 +90,7 @@ data = json.load(open(fname))
 
 sentences = all_sentences(data, 0)
 
-'''
-We are interested in only top 10 most frequent words
-'''
-w1 = 1000
 
-'''
-print most common w1 words
-'''
 Lcontext =  np.zeros((len(TypetoIndex), k))
 Rcontext =  np.zeros((len(TypetoIndex), k))
 

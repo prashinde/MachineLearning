@@ -18,7 +18,7 @@ def readfile(fname):
 
     return np.asarray(xs), np.asarray(ys)
 
-fname = '../Data/data_10_5_100000'
+fname = '../Data/data_10_3_1000'
 xs, ys = readfile(fname)
 points = np.column_stack((xs, ys))
 

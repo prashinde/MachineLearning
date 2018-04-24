@@ -6,6 +6,8 @@ import pickle
 import matplotlib.pyplot as plt
 from collections import Counter
 from numpy.linalg import matrix_rank
+import seaborn as sns
+sns.set()
 
 '''
 Normalizes each row of a given matrix to unit length
@@ -158,13 +160,13 @@ for wtype in TypeFreq.most_common():
     TypetoIndex[stype] = index
     index = index+1
 
-Mostcommon = dict(TypeFreq.most_common(1000))
 '''
 We are interested in only top 10 most frequent words
 '''
 w1 = 1000
 
-oovC = 1000
+Mostcommon = dict(TypeFreq.most_common(w1))
+oovC = w1
 #oovR = len(TypetoIndex)-1
 
 #tau = 5
@@ -224,14 +226,16 @@ for sentence in sentences:
         PrevToken = stype
         '''
 print "Done computing Lcontext and Rcontext"
-#for i in range(len(Lcontext)):
-#    print "Word=", (TypeFreq.most_common())[i]," ", Lcontext[i]
-#print Lcontext
-#print "********************************"
-#print Rcontext
 #plt.imshow(Lcontext, cmap='hot', interpolation='nearest')
-#plt.show()
+
 del sentences
+
+#sns.heatmap(Lcontext, vmin=0, vmax=0.56)
+#plt.show()
+
+#sns.heatmap(Rcontext, vmin=0, vmax=0.56)
+#plt.show()
+
 #TypetoIndex
 #TypeFreq
 
@@ -239,23 +243,30 @@ with open("Frequency", 'wb') as f:
     pickle.dump(TypeFreq, f, -1)
 f.close()
 
+del TypeFreq
+
 print "Started computing SVD"
 UL, SL, VL = np.linalg.svd(Lcontext, full_matrices=False)
 UR, SR, VR = np.linalg.svd(Rcontext, full_matrices=False)
 print "Done Computing SVD.."
-del Lcontext
-del Rcontext
 
-SL = reduce_rank(SL, 901)
-SR = reduce_rank(SR, 901)
+SL = reduce_rank(SL, w1-100+1)
+SR = reduce_rank(SR, w1-100+1)
 
-print SL
 
 SLstar = SL*np.identity(len(SL))
 SRstar = SR*np.identity(len(SR))
 
 Lstar = UL.dot(SLstar)
 Rstar = UR.dot(SRstar)
+
+#sns.heatmap(Rstar, vmin=0, vmax=0.56)
+#plt.show()
+
+
+
+#sns.heatmap(Rstar, vmin=0, vmax=0.56)
+#plt.show()
 
 Ldstar = normalize_row(Lstar)
 del Lstar
@@ -265,8 +276,9 @@ del Rstar
 D = np.concatenate((Ldstar, Rdstar), axis=1)
 del Ldstar
 del Rdstar
-
-print np.linalg.norm(D)
+del Lcontext
+del Rcontext
+del Mostcommon
 #k = 500
 #nm = kmeans(k)
 #centroids = nm.cluster(D, TypeFreq)

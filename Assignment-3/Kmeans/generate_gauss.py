@@ -20,12 +20,12 @@ nr=1000
 '''
 Each point is D dimentional
 '''
-D=3
+D=10
 
 '''
 We set variance to 0.8
 '''
-sigma = 0.8
+sigma = 1
 
 '''
 Generate "k" pik's. All of them should sum to one
