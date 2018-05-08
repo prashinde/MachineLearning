@@ -75,7 +75,7 @@ class DataV:
 
 datav = DataV("../Data/letter.data.json")
 datav.readdata()
-trainfolds, develfolds, testfolds = datav.makesplit(60, 20, 20)
+trainfolds, develfolds, testfolds = datav.makesplit(20, 20, 20)
 
 W = np.zeros((26, 128))
 T = np.zeros((26, 26))
@@ -94,5 +94,6 @@ for fold in trainfolds:
         features[cnt] = (X, Y)
         cnt += 1
 
+print len(features)
 CRF = conditional_random_field(features)
 CRF.optimize()
