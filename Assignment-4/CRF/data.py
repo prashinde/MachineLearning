@@ -75,10 +75,10 @@ class DataV:
 
 datav = DataV("../Data/letter.data.json")
 datav.readdata()
-trainfolds, develfolds, testfolds = datav.makesplit(20, 20, 20)
+trainfolds, develfolds, testfolds = datav.makesplit(40, 20, 20)
 
-W = np.zeros((26, 128))
-T = np.zeros((26, 26))
+W = np.zeros((26, 128), dtype=np.float128)
+T = np.zeros((26, 26), dtype=np.float128)
 
 features = {}
 
@@ -94,6 +94,24 @@ for fold in trainfolds:
         features[cnt] = (X, Y)
         cnt += 1
 
-print len(features)
 CRF = conditional_random_field(features)
 CRF.optimize()
+
+CRF.predict(features)
+
+develdata = {}
+cnt = 0
+for fold in develfolds:
+    for word in develfolds[fold]:
+        X = np.zeros((len(word), 128))
+        Y = np.zeros((len(word)), dtype=np.uint64)
+        WD = []
+        for i,character in enumerate(word):
+            X[i] = character['inputs']
+            Y[i] = ord(character['letter'])-ord('a')
+        develdata[cnt] = (X, Y)
+        cnt += 1
+
+print "Development data accuracy:"
+CRF.predict(develdata)
+

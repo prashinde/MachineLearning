@@ -1,3 +1,5 @@
+import numpy as np
+
 states = {0:"START", 1:"X", 2:"Y", 3:"END"}
 observable = {0:"a", 1:"b", 2:"c", 3:"d", 4:"#"}
 observableR = {"a":0, "b":1, "c":2, "d":3, "#":4}
@@ -9,9 +11,11 @@ sequence = "dab#"
 
 nstates = 4
 
-V = [[float(0) for y in range(nstates)] for x in range(len(sequence)+1)]
-B = [[0 for y in range(nstates)] for x in range(len(sequence)+1)]
+#V = [[float(0) for y in range(nstates)] for x in range(len(sequence)+1)]
+#B = [[0 for y in range(nstates)] for x in range(len(sequence)+1)]
 
+V = np.zeros((len(sequence)+1, nstates), dtype=np.float64)
+B = np.zeros((len(sequence)+1, nstates), dtype=int)
 V[0][0] = float(1)
 
 print "Transition Table:\n"
@@ -32,7 +36,6 @@ for c in sequence:
         for oldstate in range(nstates):
             stransp = transitions[oldstate][state]
             mprob = stransp * oemissionp * V[idx-1][oldstate]
-            print "              letter, currentstate, oldstate, mprob: [", c, state, oldstate, mprob, "]"
             if mprob > V[idx][state]:
                 V[idx][state] = mprob
                 B[idx][state] = oldstate
@@ -45,19 +48,28 @@ for row in V:
 
 print "V table summation:", sum(map(sum, V))
 print "B table:\n"
-for row in B:
+for row in B[1:]:
     print row
     print "\n"
 
 mlikely = []
 
-mlikely.append(nstates-1)
-print "Most likley sequence...."
-for row in reversed(B):
-    mlikely.append(max(row))
+rnum = 4
+ptr = B[rnum][3]
+mprob = V[rnum][3]
+rnum -= 1
+for row in B[3::-1]:
+    mprob += V[rnum][ptr]
+    ptr = B[rnum][ptr]
+    rnum -= 1
+    if rnum == 0:
+        break
 
-mlikely = list(reversed(mlikely))
-mlikely.pop(0)
+print "Marginal probability:", mprob
+
+print "Most likley sequence...."
+for row in V:
+    mlikely.append(np.argmax(row))
 
 for state in mlikely:
     print states[state]
